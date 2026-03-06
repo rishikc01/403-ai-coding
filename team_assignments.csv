@@ -1,0 +1,73 @@
+Project,Team Size,NetID,Name,Preference Rank,Is Pitcher,Preferred Teammates in Team
+Project 1,6,student1,Student 1,1,No,student2
+Project 1,6,student2,Student 2,1,Yes,student1
+Project 1,6,student3,Student 3,1,No,
+Project 1,6,student50,Student 50,3,No,
+Project 1,6,student57,Student 57,2,No,
+Project 1,6,student72,Student 72,N/A,No,
+Project 10,6,student14,Student 14,1,No,
+Project 10,6,student15,Student 15,1,No,
+Project 10,6,student16,Student 16,1,No,
+Project 10,6,student17,Student 17,1,Yes,
+Project 10,6,student19,Student 19,2,No,
+Project 10,6,student54,Student 54,3,No,
+Project 11,6,student22,Student 22,2,No,
+Project 11,6,student25,Student 25,3,No,
+Project 11,6,student31,Student 31,1,Yes,
+Project 11,6,student36,Student 36,3,No,
+Project 11,6,student48,Student 48,2,No,
+Project 11,6,student49,Student 49,2,No,
+Project 12,5,student35,Student 35,1,No,student37
+Project 12,5,student37,Student 37,1,Yes,student35
+Project 12,5,student51,Student 51,N/A,No,student52
+Project 12,5,student52,Student 52,N/A,No,student51
+Project 12,5,student55,Student 55,N/A,No,
+Project 13,6,student60,Student 60,1,No,"student61, student64, student63"
+Project 13,6,student61,Student 61,1,No,"student62, student65"
+Project 13,6,student62,Student 62,1,Yes,"student61, student65"
+Project 13,6,student63,Student 63,1,No,"student61, student62, student65"
+Project 13,6,student64,Student 64,1,No,"student61, student62, student65"
+Project 13,6,student65,Student 65,1,No,"student61, student62"
+Project 14,5,student18,Student 18,2,No,
+Project 14,5,student4,Student 4,1,No,
+Project 14,5,student5,Student 5,1,Yes,student4
+Project 14,5,student53,Student 53,N/A,No,
+Project 14,5,student70,Student 70,2,No,
+Project 17,6,student20,Student 20,2,No,
+Project 17,6,student24,Student 24,2,No,
+Project 17,6,student30,Student 30,2,No,
+Project 17,6,student32,Student 32,4,No,student33
+Project 17,6,student33,Student 33,4,No,student32
+Project 17,6,student56,Student 56,5,No,
+Project 18,6,student26,Student 26,2,No,
+Project 18,6,student43,Student 43,1,No,"student45, student44"
+Project 18,6,student44,Student 44,1,No,"student43, student45"
+Project 18,6,student45,Student 45,1,Yes,"student43, student44"
+Project 18,6,student46,Student 46,1,No,
+Project 18,6,student71,Student 71,2,No,
+Project 19,5,student11,Student 11,1,No,"student12, student13"
+Project 19,5,student12,Student 12,1,No,"student13, student11"
+Project 19,5,student13,Student 13,1,Yes,"student11, student12"
+Project 19,5,student28,Student 28,3,No,
+Project 19,5,student59,Student 59,5,No,
+Project 20,4,student27,Student 27,N/A,No,
+Project 20,4,student29,Student 29,N/A,No,
+Project 20,4,student34,Student 34,N/A,No,
+Project 20,4,student58,Student 58,N/A,No,
+Project 23,6,student10,Student 10,1,No,
+Project 23,6,student21,Student 21,2,No,
+Project 23,6,student6,Student 6,2,No,
+Project 23,6,student7,Student 7,1,No,
+Project 23,6,student8,Student 8,1,No,student9
+Project 23,6,student9,Student 9,1,Yes,student8
+Project 3,5,student38,Student 38,1,No,
+Project 3,5,student39,Student 39,1,No,"student41, student40"
+Project 3,5,student40,Student 40,1,No,"student39, student41"
+Project 3,5,student41,Student 41,1,Yes,"student39, student40"
+Project 3,5,student42,Student 42,1,No,
+Project 6,6,student23,Student 23,2,No,
+Project 6,6,student47,Student 47,2,No,
+Project 6,6,student66,Student 66,1,No,"student67, student68"
+Project 6,6,student67,Student 67,1,No,"student68, student66"
+Project 6,6,student68,Student 68,1,Yes,"student67, student66"
+Project 6,6,student69,Student 69,1,No,
