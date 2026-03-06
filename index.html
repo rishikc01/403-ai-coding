@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE403 Team Matcher</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #7c6af7;
+    --accent2: #f7a06a;
+    --accent3: #6af7c4;
+    --text: #e8e8f0;
+    --muted: #6b6b88;
+    --danger: #f76a6a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,106,247,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,247,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    padding: 48px 0 40px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .logo-block h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-block p {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 16px;
+    padding: 48px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(124,106,247,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: #13131e;
+  }
+
+  .upload-zone.drag-over {
+    transform: scale(1.01);
+  }
+
+  .upload-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 16px;
+    border-radius: 12px;
+    background: rgba(124,106,247,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+
+  .upload-zone h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .upload-zone p {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  #file-input { display: none; }
+
+  /* Run button */
+  .run-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 28px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.02em;
+  }
+
+  .run-btn:hover {
+    background: #9080ff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(124,106,247,0.3);
+  }
+
+  .run-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--accent3);
+    border: 1.5px solid var(--accent3);
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.05em;
+  }
+
+  .export-btn:hover {
+    background: rgba(106,247,196,0.08);
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin-bottom: 32px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .status-bar.visible { display: block; }
+
+  /* Metrics row */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    animation: slideUp 0.4s ease both;
+  }
+
+  .metric-card:nth-child(2) { animation-delay: 0.05s; }
+  .metric-card:nth-child(3) { animation-delay: 0.1s; }
+  .metric-card:nth-child(4) { animation-delay: 0.15s; }
+  .metric-card:nth-child(5) { animation-delay: 0.2s; }
+
+  .metric-label {
+    font-size: 0.7rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .metric-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .metric-value.good { color: var(--accent3); }
+  .metric-value.warn { color: var(--accent2); }
+  .metric-value.accent { color: var(--accent); }
+
+  /* Teams grid */
+  .teams-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .teams-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+  }
+
+  .teams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: slideUp 0.4s ease both;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .team-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .team-card-header {
+    padding: 16px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .team-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .team-badges {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-size {
+    background: rgba(124,106,247,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(124,106,247,0.3);
+  }
+
+  .badge-pitcher {
+    background: rgba(247,160,106,0.15);
+    color: var(--accent2);
+    border: 1px solid rgba(247,160,106,0.3);
+  }
+
+  .team-members {
+    padding: 12px 20px;
+  }
+
+  .member-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .member-row:last-child { border-bottom: none; }
+
+  .member-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    flex-shrink: 0;
+    color: #fff;
+  }
+
+  .member-info { flex: 1; min-width: 0; }
+
+  .member-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .member-meta {
+    display: flex;
+    gap: 6px;
+    margin-top: 2px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .rank-chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+  }
+
+  .rank-1 { background: rgba(106,247,196,0.15); color: var(--accent3); }
+  .rank-2 { background: rgba(124,106,247,0.15); color: var(--accent); }
+  .rank-3 { background: rgba(247,160,106,0.15); color: var(--accent2); }
+  .rank-4, .rank-5 { background: rgba(255,255,255,0.06); color: var(--muted); }
+  .rank-na { background: rgba(247,106,106,0.1); color: var(--danger); }
+
+  .tm-chip {
+    font-size: 0.6rem;
+    color: var(--accent3);
+    font-family: 'DM Mono', monospace;
+    opacity: 0.8;
+  }
+
+  .pitcher-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    flex-shrink: 0;
+  }
+
+  /* Controls row */
+  .controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+
+  .file-name-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hidden { display: none !important; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 80px 32px;
+    color: var(--muted);
+  }
+
+  .empty-state h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo-block">
+      <h1>Team Matcher</h1>
+      <p>CSE403 · Project Assignment Engine</p>
+    </div>
+  </header>
+
+  <!-- Controls -->
+  <div class="controls" id="controls">
+    <span class="file-name-badge" id="file-label">GenAI-InputFile_-_ProjectPreferences.csv · 72 students</span>
+    <button class="run-btn" id="run-btn" onclick="runMatcher()">
+      ▶ Run Matcher
+    </button>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar" id="status-bar"></div>
+
+  <!-- Metrics -->
+  <div class="metrics hidden" id="metrics-section"></div>
+
+  <!-- Teams -->
+  <div id="results-section" class="hidden">
+    <div class="teams-header">
+      <h2 id="results-title">Team Assignments</h2>
+      <button class="export-btn" onclick="exportCSV()">↓ Export CSV</button>
+    </div>
+    <div class="teams-grid" id="teams-grid"></div>
+  </div>
+</div>
+
+<script>
+// ─── AVATAR COLORS ────────────────────────────────────────────────────────────
+const COLORS = [
+  '#7c6af7','#f7a06a','#6af7c4','#f76a6a','#a06af7',
+  '#f7d06a','#6ab8f7','#f76ab8','#6af78a','#f7f76a'
+];
+function avatarColor(seed) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return COLORS[h % COLORS.length];
+}
+function initials(name) {
+  return name.split(' ').slice(0,2).map(w => w[0]||'').join('').toUpperCase();
+}
+
+// ─── HARDCODED DATA ────────────────────────────────────────────────────────
+const RAW_CSV = `Name,NetID,Project Pitched,First (1) Choice,Second (2)  Choice,Third (3) Choice,Fourth (4) Choice,Fifth (5) Choice,Team Member #1 UW NetID,Team Member #2 UW NetID,Team Member #3 UW NetID
+Student 1,student1,Project 1,Project 1,Project 2,Project 3,Project 4,Project 5,student2,,
+Student 2,student2,Project 1,Project 1,Project 6,Project 7,Project 3,Project 8,student1,,
+Student 3,student3,Project 10,Project 1,Project 9,Project 10,Project 8,Project 11,student3,,
+Student 4,student4,Project 14,Project 14,Project 13,Project 2,Project 4,Project 12,student4,,
+Student 5,student5,Project 14,Project 14,Project 13,Project 2,Project 4,Project 12,student4,,
+Student 6,student6,Project 24,Project 24,Project 23,Project 10,Project 20,Project 11,student5,,
+Student 7,student7,,Project 23,Project 28,Project 4,Project 18,Project 14,student7,,
+Student 8,student8,Project 23,Project 23,Project 24,Project 12,Project 10,Project 13,student9,student8,
+Student 9,student9,Project 23,Project 23,Project 24,Project 12,Project 10,Project 13,student9,student8,
+Student 10,student10,Project 20,Project 23,Project 20,Project 19,Project 13,Project 28,aidanyu,,
+Student 11,student11,Project 19,Project 19,Project 6,Project 9,Project 8,Project 13,student11,student12,student13
+Student 12,student12,Project 19,Project 19,Project 6,Project 9,Project 8,Project 13,student13,student11,student12
+Student 13,student13,Project 19,Project 19,Project 6,Project 9,Project 8,Project 13,student11,student13,student12
+Student 14,student14,Project 25,Project 10,Project 18,Project 8,Project 19,Project 11,student14,,
+Student 15,student15,Project 22,Project 10,Project 15,Project 23,Project 7,Project 22,student15,,
+Student 16,student16,Project 31,Project 10,Project 24,Project 31,Project 20,Project 16,student16,,
+Student 17,student17,Project 10,Project 10,Project 26,Project 31,Project 15,Project 27,student17,student3,
+Student 18,student18,Project 26,Project 26,Project 14,Project 6,Project 9,Project 20,student18,student19,
+Student 19,student19,Project 26,Project 26,Project 10,Project 12,Project 8,Project 3,student19,student18,student35
+Student 20,student20,Project 2,Project 26,Project 17,Project 8,Project 18,Project 2,student20,,
+Student 21,student21,Project 28,Project 28,Project 23,Project 20,Project 13,Project 30,student21,,
+Student 22,student22,Project 22,Project 15,Project 11,Project 22,EasyBook,Project 31,student22,,
+Student 23,student23,Project 25,Project 16,Project 6,Project 1,Project 3,Project 2,student23,,
+Student 24,student24,Project 8,Project 16,Project 17,Project 24,Project 15,Project 18,student63,,
+Student 25,student25,Project 32,EasyBook,Project 4,Project 11,Project 22,Project 15,student25,,
+Student 26,student26,Project 32,EasyBook,Project 18,Project 4,Project 15,Project 31,student26,,
+Student 27,student27,Project 5,Project 5,Project 6,Project 30,Project 9,Project 1,student28,,
+Student 28,student28,Project 5,Project 5,Project 18,Project 19,Project 28,Project 30,student27,,
+Student 29,student29,Project 4,Project 5,Project 18,Project 2,Project 4,Project 25,student29,,
+Student 30,student30,Project 4,Project 4,Project 17,Project 8,Project 10,Project 16,student30,,
+Student 31,student31,Project 11,Project 11,Project 26,Project 13,Project 22,Project 1,student31,,
+Student 32,student32,Project 21,Project 30,Project 9,Project 18,Project 17,Project 5,student32,student33,student53
+Student 33,student33,Project 30,Project 30,Project 9,Project 18,Project 17,Project 5,student33,student32,student53
+Student 34,student34,Project 27,Project 27,Project 15,Project 22,Project 26,Project 21,student34,,
+Student 35,student35,Project 12,Project 12,Project 26,Project 11,Project 6,Project 2,student35,student37,student36
+Student 36,student36,Project 12,Project 12,Project 26,Project 11,Project 6,Project 2,student36,student37,student35
+Student 37,student37,Project 12,Project 12,Project 26,Project 11,Project 6,Project 2,student35,student36,student37
+Student 38,student38,Project 32,Project 3,Project 8,Project 2,Project 13,Project 18,student38,student72,
+Student 39,student39,Project 3,Project 3,Project 2,Project 1,Project 11,Project 13,student39,student41,student40
+Student 40,student40,Project 3,Project 3,Project 2,Project 1,Project 11,Project 13,student39,student41,student40
+Student 41,student41,Project 3,Project 3,Project 2,Project 1,Project 11,Project 13,student39,student41,student40
+Student 42,student42,Project 2,Project 3,Project 17,Project 2,Project 8,Project 9,student42,student72,student20
+Student 43,student43,Project 7,Project 18,Project 4,Project 1,Project 28,Project 6,student43,student45,student44
+Student 44,student44,Project 18,Project 18,Project 4,Project 1,Project 28,Project 6,student43,student45,student44
+Student 45,student45,Project 18,Project 18,Project 4,Project 1,Project 28,Project 6,student43,student45,student44
+Student 46,student46,Project 27,Project 18,Project 3,Project 27,Project 1,Project 4,student46,student72,
+Student 47,student47,Project 31,Project 22,Project 6,Project 11,Project 2,Project 30,student47,,
+Student 48,student48,Project 8,Project 8,Project 11,Project 17,Project 18,Project 7,student48,,
+Student 49,student49,Project 11,Project 7,Project 11,Project 28,Project 25,Project 16,student49,,
+Student 50,student50,Project 7,Project 7,Project 16,Project 1,Project 14,Project 18,student50,student43,
+Student 51,student51,Project 9,Project 9,Project 6,Project 4,Project 2,Project 20,student51,student52,
+Student 52,student52,Project 9,Project 9,Project 6,Project 4,Project 2,Project 20,student51,student52,
+Student 53,student53,Project 21,Project 21,Project 9,Project 7,Project 17,Project 7,student32,student33,
+Student 54,student54,Project 22,Project 21,Project 22,Project 10,Project 13,Project 4,student54,,
+Student 55,student55,Project 8,Project 20,Project 13,Project 18,Project 5,Project 11,student55,,
+Student 56,student56,Project 20,Project 20,Project 24,Project 25,Project 23,Project 17,student56,,
+Student 57,student57,Project 29,Project 20,Project 1,Project 29,Project 9,Project 15,student57,,
+Student 58,student58,Project 29,Project 29,Project 2,Project 13,Project 6,Project 7,student57,,
+Student 59,student59,Project 28,Project 13,Project 2,Project 9,Project 12,Project 19,student59,,
+Student 60,student60,Project 15,Project 13,Project 15,Project 16,Project 4,Project 18,student61,student64,student63
+Student 61,student61,Project 13,Project 13,Project 15,Project 16,Project 4,Project 18,student61,student62,student65
+Student 62,student62,Project 13,Project 13,Project 15,Project 16,Project 4,Project 18,student61,student62,student65
+Student 63,student63,Project 16,Project 13,Project 15,Project 16,Project 4,Project 18,student61,student62,student65
+Student 64,student64,Project 16,Project 13,Project 15,Project 16,Project 4,Project 18,student61,student62,student65
+Student 65,student65,Project 15,Project 13,Project 15,Project 16,Project 4,Project 18,student61,student62,student65
+Student 66,student66,Project 6,Project 6,Project 3,Project 24,Project 13,Project 4,student67,student68,student66
+Student 67,student67,Project 6,Project 6,Project 9,Project 20,Project 3,Project 13,student67,student68,student66
+Student 68,student68,Project 6,Project 6,Project 3,Project 11,Project 27,Project 4,student67,student68,student66
+Student 69,student69,Project 11,Project 6,Project 26,Project 11,Project 7,Project 4,student69,student49,student31
+Student 70,student70,Project 17,Project 17,Project 14,Project 18,Project 16,Project 26,student70,student71,
+Student 71,student71,Project 17,Project 17,Project 18,Project 19,Project 5,Project 9,student70,,
+Student 72,student72,Project 2,,,,,,,,`;
+
+let rawStudents = parseCSV(RAW_CSV);
+
+// ─── CSV PARSER ───────────────────────────────────────────────────────────────
+function cleanProj(p) {
+  if (!p) return null;
+  p = p.trim();
+  if (!p) return null;
+  if (!p.toLowerCase().startsWith('project')) p = 'Project ' + p;
+  return p;
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^\uFEFF/, ''));
+  const students = {};
+
+  for (let i = 1; i < lines.length; i++) {
+    // handle commas inside quoted fields
+    const cols = lines[i].match(/(".*?"|[^,]+|(?<=,)(?=,)|(?<=,)$|^(?=,))/g) || [];
+    const row = {};
+    headers.forEach((h, idx) => {
+      row[h] = (cols[idx] || '').replace(/^"|"$/g, '').trim();
+    });
+
+    const netId = row['NetID'];
+    if (!netId) continue;
+
+    const prefCols = ['First (1) Choice','Second (2)  Choice','Third (3) Choice','Fourth (4) Choice','Fifth (5) Choice'];
+    const prefs = [];
+    for (const col of prefCols) {
+      const v = cleanProj(row[col]);
+      if (v && !prefs.includes(v)) prefs.push(v);
+    }
+
+    const tmCols = ['Team Member #1 UW NetID','Team Member #2 UW NetID','Team Member #3 UW NetID'];
+    const teammates = [];
+    for (const col of tmCols) {
+      const t = (row[col] || '').trim();
+      if (t && t !== netId) teammates.push(t);
+    }
+
+    students[netId] = {
+      name: row['Name'] || netId,
+      netId,
+      pitched: cleanProj(row['Project Pitched']),
+      prefs,
+      teammates,
+    };
+  }
+  return students;
+}
+
+// ─── ALGORITHM ────────────────────────────────────────────────────────────────
+const RANK_SCORE = {0:10,1:8,2:5,3:3,4:1};
+
+function prefScore(student, project) {
+  const idx = student.prefs.indexOf(project);
+  return idx >= 0 ? (RANK_SCORE[idx] || 0) : 0;
+}
+
+function tmOverlap(student, memberSet) {
+  return student.teammates.filter(t => memberSet.has(t)).length;
+}
+
+function pitcherConstraints(students) {
+  const pc = {};
+  for (const [nid, s] of Object.entries(students)) {
+    if (s.pitched && s.prefs[0] === s.pitched) pc[s.pitched] = nid;
+  }
+  return pc;
+}
+
+function selectProjects(students) {
+  const n = Object.keys(students).length;
+  const maxTeams = Math.ceil(n / 4) + 1;
+
+  const demand = {};
+  for (const s of Object.values(students)) {
+    for (const p of s.prefs) demand[p] = (demand[p] || 0) + 1;
+  }
+
+  const required = new Set(Object.keys(pitcherConstraints(students)));
+  const extras = Object.keys(demand)
+    .filter(p => !required.has(p))
+    .sort((a, b) => demand[b] - demand[a]);
+
+  const selected = [...required];
+  for (const p of extras) {
+    if (selected.length >= maxTeams) break;
+    selected.push(p);
+  }
+  return selected;
+}
+
+function assign(students, selectedProjects) {
+  const teams = {};
+  for (const p of selectedProjects) teams[p] = [];
+  const remaining = new Set(Object.keys(students));
+  const pc = pitcherConstraints(students);
+
+  // Place pitchers first
+  for (const [proj, nid] of Object.entries(pc)) {
+    if (teams[proj] && remaining.has(nid)) {
+      teams[proj].push(nid);
+      remaining.delete(nid);
+    }
+  }
+
+  // Sort by most constrained
+  const order = [...remaining].sort((a, b) => {
+    const aOpts = students[a].prefs.filter(p => p in teams).length;
+    const bOpts = students[b].prefs.filter(p => p in teams).length;
+    return aOpts - bOpts;
+  });
+
+  for (const nid of order) {
+    const s = students[nid];
+    let bestProj = null, bestScore = -999;
+
+    for (const proj of selectedProjects) {
+      if (teams[proj].length >= 6) continue;
+      const ps = prefScore(s, proj);
+      const ts = tmOverlap(s, new Set(teams[proj]));
+      const sizePenalty = Math.max(0, teams[proj].length - 4);
+      const score = ps * 3 + ts * 4 - sizePenalty;
+      if (score > bestScore) { bestScore = score; bestProj = proj; }
+    }
+
+    if (!bestProj) bestProj = selectedProjects.reduce((a, b) =>
+      teams[a].length <= teams[b].length ? a : b);
+
+    teams[bestProj].push(nid);
+    remaining.delete(nid);
+  }
+
+  return teams;
+}
+
+function fixSizes(teams, students, selectedProjects, minSz=4, maxSz=6) {
+  let projects = selectedProjects.filter(p => p in teams);
+
+  for (let iter = 0; iter < 200; iter++) {
+    const small = projects.filter(p => teams[p] && teams[p].length > 0 && teams[p].length < minSz);
+    const large = projects.filter(p => teams[p] && teams[p].length > maxSz);
+    if (!small.length && !large.length) break;
+
+    for (const bigP of large) {
+      while (teams[bigP].length > maxSz) {
+        const student = teams[bigP].pop();
+        const s = students[student];
+        const candidates = projects
+          .filter(p => p !== bigP && teams[p].length < maxSz)
+          .sort((a,b) => prefScore(s,b) - prefScore(s,a));
+        if (candidates.length) { teams[candidates[0]].push(student); }
+        else { teams[bigP].push(student); break; }
+      }
+    }
+
+    for (const smP of small) {
+      while (teams[smP] && teams[smP].length > 0) {
+        const student = teams[smP][0];
+        const s = students[student];
+        const candidates = projects
+          .filter(p => p !== smP && teams[p].length < maxSz)
+          .sort((a,b) => prefScore(s,b) - prefScore(s,a));
+        teams[smP].shift();
+        const dest = candidates[0] || projects.filter(p=>p!==smP).reduce((a,b)=>teams[a].length<=teams[b].length?a:b);
+        teams[dest].push(student);
+      }
+    }
+
+    // Remove empty
+    projects = projects.filter(p => { if (!teams[p] || !teams[p].length) { delete teams[p]; return false; } return true; });
+  }
+
+  return { teams, projects };
+}
+
+function evaluate(teams, students) {
+  const pc = pitcherConstraints(students);
+  let total=0, inTop5=0, sumPs=0, sumTs=0, tmSat=0, tmTot=0, pOk=0, pTot=0;
+
+  for (const [proj, members] of Object.entries(teams)) {
+    const mset = new Set(members);
+    for (const nid of members) {
+      const s = students[nid];
+      const ps = prefScore(s, proj);
+      const ts = tmOverlap(s, new Set([...mset].filter(x=>x!==nid)));
+      sumPs += ps; sumTs += ts;
+      if (ps > 0) inTop5++;
+      total++;
+      if (s.teammates.length) {
+        tmTot++;
+        if (s.teammates.some(t => mset.has(t))) tmSat++;
+      }
+    }
+  }
+  for (const [proj, nid] of Object.entries(pc)) {
+    pTot++;
+    if (teams[proj] && teams[proj].includes(nid)) pOk++;
+  }
+
+  return {
+    total,
+    inTop5Pct: total ? Math.round(100*inTop5/total) : 0,
+    avgPref: total ? (sumPs/total).toFixed(2) : 0,
+    avgTm: total ? (sumTs/total).toFixed(2) : 0,
+    pitcher: `${pOk}/${pTot}`,
+    tmPct: tmTot ? Math.round(100*tmSat/tmTot) : 0,
+  };
+}
+
+// ─── RUN ──────────────────────────────────────────────────────────────────────
+let lastTeams = null;
+let lastStudents = null;
+let lastProjects = null;
+
+function runMatcher() {
+  if (!rawStudents) return;
+  setStatus('⚙ Running assignment algorithm…');
+
+  setTimeout(() => {
+    const students = rawStudents;
+    const selected = selectProjects(students);
+    let teams = assign(students, selected);
+    const { teams: fixedTeams, projects } = fixSizes(teams, students, selected);
+
+    lastTeams = fixedTeams;
+    lastStudents = students;
+    lastProjects = projects;
+
+    const metrics = evaluate(fixedTeams, students);
+    renderMetrics(metrics, projects.length);
+    renderTeams(fixedTeams, students, projects);
+
+    setStatus(`✓ Done — ${metrics.total} students assigned to ${projects.length} teams`);
+  }, 50);
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderMetrics(m, teamCount) {
+  const el = document.getElementById('metrics-section');
+  el.classList.remove('hidden');
+  el.innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Students</div>
+      <div class="metric-value accent">${m.total}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Teams</div>
+      <div class="metric-value accent">${teamCount}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">In Top-5</div>
+      <div class="metric-value good">${m.inTop5Pct}%</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Avg Pref Score</div>
+      <div class="metric-value good">${m.avgPref}<span style="font-size:1rem;color:var(--muted)"> /10</span></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Has Teammate</div>
+      <div class="metric-value ${m.tmPct >= 60 ? 'good' : 'warn'}">${m.tmPct}%</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Pitchers Met</div>
+      <div class="metric-value warn">${m.pitcher}</div>
+    </div>
+  `;
+}
+
+function rankChipClass(rank) {
+  if (rank === null) return 'rank-na';
+  return `rank-${rank}`;
+}
+
+function renderTeams(teams, students, projects) {
+  const pc = pitcherConstraints(students);
+  const grid = document.getElementById('teams-grid');
+  grid.innerHTML = '';
+
+  const sorted = [...projects].sort();
+  sorted.forEach((proj, i) => {
+    if (!teams[proj]) return;
+    const members = teams[proj];
+    const isPitcherProj = proj in pc;
+
+    const card = document.createElement('div');
+    card.className = 'team-card';
+    card.style.animationDelay = `${i * 0.04}s`;
+
+    const membersHTML = members.sort().map(nid => {
+      const s = students[nid];
+      const rank = s.prefs.indexOf(proj) >= 0 ? s.prefs.indexOf(proj) + 1 : null;
+      const rankLabel = rank ? `#${rank} choice` : 'not in top 5';
+      const rankClass = rank ? `rank-${rank}` : 'rank-na';
+      const tms = s.teammates.filter(t => members.includes(t));
+      const isPitcher = pc[proj] === nid;
+      const color = avatarColor(nid);
+
+      return `
+        <div class="member-row">
+          <div class="member-avatar" style="background:${color}20;color:${color};border:1px solid ${color}40">
+            ${initials(s.name)}
+          </div>
+          <div class="member-info">
+            <div class="member-name">${s.name} <span style="color:var(--muted);font-size:0.72rem">(${nid})</span></div>
+            <div class="member-meta">
+              <span class="rank-chip ${rankClass}">${rankLabel}</span>
+              ${tms.length ? `<span class="tm-chip">✓ ${tms.length} teammate${tms.length>1?'s':''}</span>` : ''}
+              ${isPitcher ? `<span style="font-size:0.6rem;color:var(--accent2);font-family:'DM Mono',monospace">pitcher</span>` : ''}
+            </div>
+          </div>
+          ${isPitcher ? '<div class="pitcher-dot"></div>' : ''}
+        </div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="team-card-header">
+        <div class="team-name">${proj}</div>
+        <div class="team-badges">
+          ${isPitcherProj ? '<span class="badge badge-pitcher">PITCHER</span>' : ''}
+          <span class="badge badge-size">${members.length} members</span>
+        </div>
+      </div>
+      <div class="team-members">${membersHTML}</div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  document.getElementById('results-section').classList.remove('hidden');
+  document.getElementById('results-title').textContent = `${projects.length} Teams Assigned`;
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
+function exportCSV() {
+  if (!lastTeams) return;
+  const pc = pitcherConstraints(lastStudents);
+  const rows = [['Project','Team Size','NetID','Name','Preference Rank','Is Pitcher','Preferred Teammates in Team']];
+
+  for (const proj of [...lastProjects].sort()) {
+    if (!lastTeams[proj]) continue;
+    for (const nid of [...lastTeams[proj]].sort()) {
+      const s = lastStudents[nid];
+      const rank = s.prefs.indexOf(proj) >= 0 ? s.prefs.indexOf(proj)+1 : 'N/A';
+      const tms = s.teammates.filter(t => lastTeams[proj].includes(t) && t !== nid);
+      rows.push([proj, lastTeams[proj].length, nid, s.name, rank,
+        pc[proj]===nid?'Yes':'No', tms.join('; ')]);
+    }
+  }
+
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = 'team_assignments.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function setStatus(msg) {
+  const el = document.getElementById('status-bar');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+</script>
+</body>
+</html>
